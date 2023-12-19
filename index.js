@@ -1,29 +1,47 @@
-require("http").createServer((_, res) => res.end("Uptime sayoZ!")).listen(8080)
-require ('./configs')
 const { modul } = require('./module');
-const { baileys, boom, chalk, fs, figlet, FileType, path, pino, process, PhoneNumber } = modul;
-const { Boom } = boom;
-const { default: sayozConnect, useSingleFileAuthState, fetchLatestBaileysVersion, generateForwardMessageContent, prepareWAMessageMedia, generateWAMessageFromContent, generateMessageID, downloadContentFromMessage, jidDecode, proto } = require("@adiwajshing/baileys")
+const moment = require('moment-timezone');
+const { baileys, boom, chalk, fs, figlet, FileType, path, pino, process, PhoneNumber, axios, yargs, _ } = modul;
+const { Boom } = boom
 const {
-default: makeWASocket,
-BufferJSON,
-initInMemoryKeyStore,
-DisconnectReason,
-AnyMessageContent,
-makeInMemoryStore,
-useMultiFileAuthState,
-delay
-} = require("@adiwajshing/baileys")
+	default: XeonBotIncConnect,
+	BufferJSON,
+	initInMemoryKeyStore,
+	DisconnectReason,
+	AnyMessageContent,
+        makeInMemoryStore,
+	useMultiFileAuthState,
+	delay,
+	fetchLatestBaileysVersion,
+	generateForwardMessageContent,
+    prepareWAMessageMedia,
+    generateWAMessageFromContent,
+    generateMessageID,
+    downloadContentFromMessage,
+    jidDecode,
+    getAggregateVotesInPollMessage,
+    proto
+} = require("@whiskeysockets/baileys")
 const { color, bgcolor } = require('./lib/color')
 const colors = require('colors')
-const usePairingCode = true
 const readline = require("readline")
-const { uncache, nocache } = require('./lib/loader')
 const { start } = require('./lib/spinner')
+const { uncache, nocache } = require('./lib/loader')
 const { imageToWebp, videoToWebp, writeExifImg, writeExifVid } = require('./lib/exif')
 const { smsg, isUrl, generateMessageTag, getBuffer, getSizeMedia, fetchJson, await, sleep, reSize } = require('./lib/myfunc')
-const owner = JSON.parse(fs.readFileSync('./database/owner.json'))
-const express = require('express');
+const usePairingCode = true
+const prefix = ''
+
+global.db = JSON.parse(fs.readFileSync('./database/database.json'))
+if (global.db) global.db = {
+sticker: {},
+database: {}, 
+game: {},
+others: {},
+users: {},
+chats: {},
+settings: {},
+...(global.db || {})
+}
 
 const question = (text) => {
   const rl = readline.createInterface({
@@ -35,143 +53,276 @@ rl.question(text, resolve)
   })
 };
 
-const app = express();
+const owner = JSON.parse(fs.readFileSync('./database/owner.json'))
 
-
-//=================================================//
-
-const mongoDB = require('./lib/mongoDB')
-//=================================================//
-//=================================================//
 const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
-//=================================================//
 
-require('./sayoz.js')
-nocache('../sayoz.js', module => console.log(color('[ CHANGE ]', 'aqua'), color(`'${module}'`, 'aqua'), 'Updated'))
+require('./XeonCheems8.js')
+nocache('../XeonCheems8.js', module => console.log(color('[ CHANGE ]', 'green'), color(`'${module}'`, 'green'), 'Updated'))
 require('./index.js')
-nocache('../index.js', module => console.log(color('[ CHANGE ]', 'aqua'), color(`'${module}'`, 'aqua'), 'Updated'))
+nocache('../index.js', module => console.log(color('[ CHANGE ]', 'green'), color(`'${module}'`, 'green'), 'Updated'))
 
-async function sayozBot() {
+async function XeonBotIncBot() {
 const { state, saveCreds } = await useMultiFileAuthState(global.sessionName)
-const sayoz = sayozConnect({
+const XeonBotInc = XeonBotIncConnect({
 logger: pino({ level: "silent" }),
 printQRInTerminal: !usePairingCode,
 auth: state,
 browser: ['Chrome (Linux)', '', '']
 });
-if(usePairingCode && !sayoz.authState.creds.registered) {
+if(usePairingCode && !XeonBotInc.authState.creds.registered) {
 		const phoneNumber = await question('556293...:\n');
-		const code = await sayoz.requestPairingCode(phoneNumber.trim())
+		const code = await XeonBotInc.requestPairingCode(phoneNumber.trim())
 		console.log(`Pairing code: ${code}`)
 
 	}
-//=================================================//
 
-console.log(color(figlet.textSync(`Mann`, {
-font: 'Standard',
-horizontalLayout: 'default',
-vertivalLayout: 'default',
-whitespaceBreak: false
-}), 'aqua'))
+XeonBotInc.ev.on('connection.update', async (update) => {
+	const {
+		connection,
+		lastDisconnect
+	} = update
+try{
+		if (connection === 'close') {
+			let reason = new Boom(lastDisconnect?.error)?.output.statusCode
+			if (reason === DisconnectReason.badSession) {
+				console.log(`Bad Session File, Please Delete Session and Scan Again`);
+				XeonBotIncBot()
+			} else if (reason === DisconnectReason.connectionClosed) {
+				console.log("Connection closed, reconnecting....");
+				XeonBotIncBot();
+			} else if (reason === DisconnectReason.connectionLost) {
+				console.log("Connection Lost from Server, reconnecting...");
+				XeonBotIncBot();
+			} else if (reason === DisconnectReason.connectionReplaced) {
+				console.log("Connection Replaced, Another New Session Opened, Please Close Current Session First");
+				XeonBotIncBot()
+			} else if (reason === DisconnectReason.loggedOut) {
+				console.log(`Device Logged Out, Please Scan Again And Run.`);
+				XeonBotIncBot();
+			} else if (reason === DisconnectReason.restartRequired) {
+				console.log("Restart Required, Restarting...");
+				XeonBotIncBot();
+			} else if (reason === DisconnectReason.timedOut) {
+				console.log("Connection TimedOut, Reconnecting...");
+				XeonBotIncBot();
+			} else XeonBotInc.end(`Unknown DisconnectReason: ${reason}|${connection}`)
+		}
+		if (update.connection == "connecting" || update.receivedPendingNotifications == "false") {
+			console.log(color(`\n🌿Connecting...`, 'yellow'))
+		}
+		if (update.connection == "open" || update.receivedPendingNotifications == "true") {
+			console.log(color(` `,'magenta'))
+            console.log(color(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2), 'yellow'))
+			await delay(1999)
+            console.log(chalk.yellow(`\n\n               ${chalk.bold.blue(`[ ${botname} ]`)}\n\n`))
+            console.log(color(`< ================================================== >`, 'cyan'))
+	        console.log(color(`\n${themeemoji} YT CHANNEL: Xeon`,'magenta'))
+            console.log(color(`${themeemoji} GITHUB: DGXeon `,'magenta'))
+            console.log(color(`${themeemoji} INSTAGRAM: @unicorn_xeon `,'magenta'))
+            console.log(color(`${themeemoji} WA NUMBER: ${owner}`,'magenta'))
+            console.log(color(`${themeemoji} CREDIT: ${wm}\n`,'magenta'))
+		}
+	
+} catch (err) {
+	  console.log('Error in Connection.update '+err)
+	  XeonBotIncBot();
+	}
+	
+})
 
-console.log('The Simple Bot WhatsApp Made By sayoz')
+await delay(5555) 
+start('2',colors.bold.white('\n\nWaiting for New Messages..'))
 
-sayoz.ws.on('CB:Blocklist', json => {
-if (blocked.length > 2) return
-for (let i of json[1].blocklist) {
-blocked.push(i.replace('c.us','s.whatsapp.net'))}})
+XeonBotInc.ev.on('creds.update', await saveCreds)
 
-sayoz.ev.on('messages.upsert', async chatUpdate => {
+    // Anti Call
+    XeonBotInc.ev.on('call', async (XeonPapa) => {
+    let botNumber = await XeonBotInc.decodeJid(XeonBotInc.user.id)
+    let XeonBotNum = db.settings[botNumber].anticall
+    if (!XeonBotNum) return
+    console.log(XeonPapa)
+    for (let XeonFucks of XeonPapa) {
+    if (XeonFucks.isGroup == false) {
+    if (XeonFucks.status == "offer") {
+    let XeonBlokMsg = await XeonBotInc.sendTextWithMentions(XeonFucks.from, `*${XeonBotInc.user.name}* can't receive ${XeonFucks.isVideo ? `video` : `voice` } call. Sorry @${XeonFucks.from.split('@')[0]} you will be blocked. If accidentally please contact the owner to be unblocked !`)
+    XeonBotInc.sendContact(XeonFucks.from, global.owner, XeonBlokMsg)
+    await sleep(8000)
+    await XeonBotInc.updateBlockStatus(XeonFucks.from, "block")
+    }
+    }
+    }
+    })
+
+XeonBotInc.ev.on('messages.upsert', async chatUpdate => {
 try {
-kay = chatUpdate.messages[0]
+const kay = chatUpdate.messages[0]
 if (!kay.message) return
 kay.message = (Object.keys(kay.message)[0] === 'ephemeralMessage') ? kay.message.ephemeralMessage.message : kay.message
-if (kay.key && kay.key.remoteJid === 'status@broadcast') return
-if (!sayoz.public && !kay.key.fromMe && chatUpdate.type === 'notify') return
+if (kay.key && kay.key.remoteJid === 'status@broadcast')  {
+await XeonBotInc.readMessages([kay.key]) }
+if (!XeonBotInc.public && !kay.key.fromMe && chatUpdate.type === 'notify') return
 if (kay.key.id.startsWith('BAE5') && kay.key.id.length === 16) return
-m = smsg(sayoz, kay, store)
-require('./sayoz')(sayoz, m, chatUpdate, store)
+const m = smsg(XeonBotInc, kay, store)
+require('./XeonCheems8')(XeonBotInc, m, chatUpdate, store)
 } catch (err) {
 console.log(err)}})
 
-sayoz.ev.on("groups.update", async (json) => {
-try {
-ppgroup = await sayoz.profilePictureUrl(anu.id, 'image')
+	// detect group update
+		XeonBotInc.ev.on("groups.update", async (json) => {
+			try {
+ppgroup = await XeonBotInc.profilePictureUrl(anu.id, 'image')
 } catch (err) {
 ppgroup = 'https://i.ibb.co/RBx5SQC/avatar-group-large-v2.png?q=60'
 }
-
-console.log(json)
-const res = json[0];
-if (res.announce == true) {
-await sleep(2000)
-sayoz.sendMessage(res.id, {
-text: `「 GRUPO FECHADO 」\n\ngrupo foi fechado pelo administrador da prisma!`,
-});
-} else if (res.announce == false) {
-await sleep(2000)
-sayoz.sendMessage(res.id, {
-text: `「 GRUPO ABERTO 」\n\ngrupo aberto para mensagens!`,
-});
-}
-});
-
-sayoz.ev.on('group-participants.update', async (anu) => {
+			console.log(json)
+			const res = json[0];
+			if (res.announce == true) {
+				await sleep(2000)
+				XeonBotInc.sendMessage(res.id, {
+					text: `「 Grupo 」\n\nO grupo foi fechado, somente admins pode enviar mensagem !`,
+				});
+			} else if (res.announce == false) {
+				await sleep(2000)
+				XeonBotInc.sendMessage(res.id, {
+					text: `「 Grupo 」\n\nO grupo foi aberto, agora participantes podem enviar mensagens!`,
+				});
+			} else if (res.restrict == true) {
+				await sleep(2000)
+				XeonBotInc.sendMessage(res.id, {
+					text: `「 Grupo 」\n\nAgora Somente admins pode modificar o grupo!`,
+				});
+			} else if (res.restrict == false) {
+				await sleep(2000)
+				XeonBotInc.sendMessage(res.id, {
+					text: `「 Grupo 」\n\nAgora membros comum pode modificar o grupo !`,
+				});
+			} else if(!res.desc == ''){
+				await sleep(2000)
+				XeonBotInc.sendMessage(res.id, { 
+					text: `「 Grupo 」\n\n*Descrição do grupo foi alterada para*\n\n${res.desc}`,
+				});
+      } else {
+				await sleep(2000)
+				XeonBotInc.sendMessage(res.id, {
+					text: `「 Grupo 」\n\n*O nome do grupo foi mudado para*\n\n*${res.subject}*`,
+				});
+			} 
+			
+		});
+		
+XeonBotInc.ev.on('group-participants.update', async (anu) => {
 console.log(anu)
 try {
-let metadata = await sayoz.groupMetadata(anu.id)
+let metadata = await XeonBotInc.groupMetadata(anu.id)
 let participants = anu.participants
 for (let num of participants) {
 try {
-ppuser = await sayoz.profilePictureUrl(num, 'image')
+ppuser = await XeonBotInc.profilePictureUrl(num, 'image')
 } catch (err) {
 ppuser = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png?q=60'
 }
 try {
-ppgroup = await sayoz.profilePictureUrl(anu.id, 'image')
+ppgroup = await XeonBotInc.profilePictureUrl(anu.id, 'image')
 } catch (err) {
 ppgroup = 'https://i.ibb.co/RBx5SQC/avatar-group-large-v2.png?q=60'
 }
-if (anu.action == 'add') {
-sayoz.sendMessage(anu.id, {
-image: {url:ppuser}, caption : `✧━━━━[ *PRISMA* ]━━━━✧
-_👋Olá @${num.split("@")[0]} Seja bem vindo a prisma, de uma olhadinha nas regras\n\n${metadata.subject}_
-
-Seja ativo na gang!`},{ quoted : {
-key: {
-fromMe: false, 
-participant: `0@s.whatsapp.net`, 
-...({ remoteJid: "status@broadcast" }) 
-},
-"message": {
-"pollCreationMessage": {
-"name": `2k`,
-"options": [
-	{
-"optionName": "skin & hat"
-	}
-],
-"selectableOptionsCount": 1
-}}}})
-} else if (anu.action == 'remove') {
-sayoz.sendMessage(anu.id, {
-image: {url:ppuser}, caption : `✧━━━━[ *PRISMA* ]━━━━✧
-_@${num.split("@")[0]} acabou de sair do grupo`},{ quoted : {
-key: {
-fromMe: false, 
-participant: `0@s.whatsapp.net`, 
-...({ remoteJid: "status@broadcast" }) 
-},
-"message": {
-"pollCreationMessage": {
-"name": `2k`,
-"options": [
-	{
-"optionName": "skin & hat"
-	}
-],
-"selectableOptionsCount": 1
-}}}})
+//welcome\\
+memb = metadata.participants.length
+XeonWlcm = await getBuffer(ppuser)
+XeonLft = await getBuffer(ppuser)
+                if (anu.action == 'add') {
+                const xeonbuffer = await getBuffer(ppuser)
+                let xeonName = num
+                const xtime = moment.tz('Asia/Kolkata').format('HH:mm:ss')
+	            const xdate = moment.tz('Asia/Kolkata').format('DD/MM/YYYY')
+	            const xmembers = metadata.participants.length
+                xeonbody = `┌─❖
+│「 Oi 👋 」
+└┬❖ 「  @${xeonName.split("@")[0]}  」
+   │✑  𝗕𝗲𝗺 𝘃𝗶𝗻𝗱𝗼 𝗮𝗼
+   │✑  ${metadata.subject}
+   │✑  𝗠𝗲𝗺𝗯𝗿𝗼𝘀 : 
+   │✑ ${xmembers}th
+   │✑  𝗘𝗻𝘁𝗿𝗼𝘂 : 
+   │✑ ${xtime} ${xdate}
+   └───────────────┈ ⳹`
+XeonBotInc.sendMessage(anu.id,
+ { text: xeonbody,
+ contextInfo:{
+ mentionedJid:[num],
+ "externalAdReply": {"showAdAttribution": true,
+ "containsAutoReply": true,
+ "title": ` ${global.botname}`,
+"body": `${ownername}`,
+ "previewType": "PHOTO",
+"thumbnailUrl": ``,
+"thumbnail": XeonWlcm,
+"sourceUrl": `${wagc}`}}})
+                } else if (anu.action == 'remove') {
+                	const xeonbuffer = await getBuffer(ppuser)
+                    const xeontime = moment.tz('Asia/Kolkata').format('HH:mm:ss')
+	                const xeondate = moment.tz('Asia/Kolkata').format('DD/MM/YYYY')
+                	let xeonName = num
+                    const xeonmembers = metadata.participants.length
+                    xeonbody = `┌─❖
+│「 𝗔𝗱𝗲𝘂𝘀 👋 」
+└┬❖ 「 @${xeonName.split("@")[0]}  」
+   │✑  𝗦𝗮𝗶𝘂 
+   │✑ ${metadata.subject}
+   │✑  𝗠𝗲𝗺𝗯𝗿𝗼𝘀 : 
+   │✑ ${xeonmembers}th
+   │✑  𝗛𝗼𝗿𝗮 : 
+   │✑  ${xeontime} ${xeondate}
+   └───────────────┈ ⳹`
+XeonBotInc.sendMessage(anu.id,
+ { text: xeonbody,
+ contextInfo:{
+ mentionedJid:[num],
+ "externalAdReply": {"showAdAttribution": true,
+ "containsAutoReply": true,
+ "title": ` ${global.botname}`,
+"body": `${ownername}`,
+ "previewType": "PHOTO",
+"thumbnailUrl": ``,
+"thumbnail": XeonLft,
+"sourceUrl": `${wagc}`}}})
+} else if (anu.action == 'promote') {
+const xeonbuffer = await getBuffer(ppuser)
+const xeontime = moment.tz('Asia/Kolkata').format('HH:mm:ss')
+const xeondate = moment.tz('Asia/Kolkata').format('DD/MM/YYYY')
+let xeonName = num
+xeonbody = ` 𝗣𝗮𝗿𝗮𝗯𝗲𝗻𝘀🎉 @${xeonName.split("@")[0]}, Agora você e um admin do grupo 🥳`
+   XeonBotInc.sendMessage(anu.id,
+ { text: xeonbody,
+ contextInfo:{
+ mentionedJid:[num],
+ "externalAdReply": {"showAdAttribution": true,
+ "containsAutoReply": true,
+ "title": ` ${global.botname}`,
+"body": `${ownername}`,
+ "previewType": "PHOTO",
+"thumbnailUrl": ``,
+"thumbnail": XeonWlcm,
+"sourceUrl": `${wagc}`}}})
+} else if (anu.action == 'demote') {
+const xeonbuffer = await getBuffer(ppuser)
+const xeontime = moment.tz('Asia/Kolkata').format('HH:mm:ss')
+const xeondate = moment.tz('Asia/Kolkata').format('DD/MM/YYYY')
+let xeonName = num
+xeonbody = `𝗢𝗼𝗽𝘀‼️ @${xeonName.split("@")[0]}, Você perdeu seu cargo de admin 😬`
+XeonBotInc.sendMessage(anu.id,
+ { text: xeonbody,
+ contextInfo:{
+ mentionedJid:[num],
+ "externalAdReply": {"showAdAttribution": true,
+ "containsAutoReply": true,
+ "title": ` ${global.botname}`,
+"body": `${ownername}`,
+ "previewType": "PHOTO",
+"thumbnailUrl": ``,
+"thumbnail": XeonLft,
+"sourceUrl": `${wagc}`}}})
 }
 }
 } catch (err) {
@@ -179,9 +330,37 @@ console.log(err)
 }
 })
 
-sayoz.sendTextWithMentions = async (jid, text, quoted, options = {}) => sayoz.sendMessage(jid, { text: text, contextInfo: { mentionedJid: [...text.matchAll(/@(\d{0,16})/g)].map(v => v[1] + '@s.whatsapp.net') }, ...options }, { quoted })
+    // respon cmd pollMessage
+    async function getMessage(key){
+        if (store) {
+            const msg = await store.loadMessage(key.remoteJid, key.id)
+            return msg?.message
+        }
+        return {
+            conversation: "Cheems Bot Here"
+        }
+    }
+    XeonBotInc.ev.on('messages.update', async chatUpdate => {
+        for(const { key, update } of chatUpdate) {
+			if(update.pollUpdates && key.fromMe) {
+				const pollCreation = await getMessage(key)
+				if(pollCreation) {
+				    const pollUpdate = await getAggregateVotesInPollMessage({
+							message: pollCreation,
+							pollUpdates: update.pollUpdates,
+						})
+	                var toCmd = pollUpdate.filter(v => v.voters.length !== 0)[0]?.name
+	                if (toCmd == undefined) return
+                    var prefCmd = prefix+toCmd
+	                XeonBotInc.appenTextMessage(prefCmd, chatUpdate)
+				}
+			}
+		}
+    })
 
-sayoz.decodeJid = (jid) => {
+XeonBotInc.sendTextWithMentions = async (jid, text, quoted, options = {}) => XeonBotInc.sendMessage(jid, { text: text, contextInfo: { mentionedJid: [...text.matchAll(/@(\d{0,16})/g)].map(v => v[1] + '@s.whatsapp.net') }, ...options }, { quoted })
+
+XeonBotInc.decodeJid = (jid) => {
 if (!jid) return jid
 if (/:\d+@/gi.test(jid)) {
 let decode = jidDecode(jid) || {}
@@ -189,60 +368,48 @@ return decode.user && decode.server && decode.user + '@' + decode.server || jid
 } else return jid
 }
 
-sayoz.ev.on('contacts.update', update => {
+XeonBotInc.ev.on('contacts.update', update => {
 for (let contact of update) {
-let id = sayoz.decodeJid(contact.id)
+let id = XeonBotInc.decodeJid(contact.id)
 if (store && store.contacts) store.contacts[id] = { id, name: contact.notify }
 }
 })
 
-sayoz.getName = (jid, withoutContact  = false) => {
-id = sayoz.decodeJid(jid)
-withoutContact = sayoz.withoutContact || withoutContact 
+XeonBotInc.getName = (jid, withoutContact  = false) => {
+id = XeonBotInc.decodeJid(jid)
+withoutContact = XeonBotInc.withoutContact || withoutContact 
 let v
 if (id.endsWith("@g.us")) return new Promise(async (resolve) => {
 v = store.contacts[id] || {}
-if (!(v.name || v.subject)) v = sayoz.groupMetadata(id) || {}
+if (!(v.name || v.subject)) v = XeonBotInc.groupMetadata(id) || {}
 resolve(v.name || v.subject || PhoneNumber('+' + id.replace('@s.whatsapp.net', '')).getNumber('international'))
 })
 else v = id === '0@s.whatsapp.net' ? {
 id,
 name: 'WhatsApp'
-} : id === sayoz.decodeJid(sayoz.user.id) ?
-sayoz.user :
+} : id === XeonBotInc.decodeJid(XeonBotInc.user.id) ?
+XeonBotInc.user :
 (store.contacts[id] || {})
 return (withoutContact ? '' : v.name) || v.subject || v.verifiedName || PhoneNumber('+' + jid.replace('@s.whatsapp.net', '')).getNumber('international')
 }
 
-sayoz.parseMention = (text = '') => {
+XeonBotInc.parseMention = (text = '') => {
 return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(v => v[1] + '@s.whatsapp.net')
 }
 
-sayoz.sendContact = async (jid, kon, quoted = '', opts = {}) => {
-let list = []
-for (let i of kon) {
-list.push({
-displayName: await sayoz.getName(i),
-vcard: `BEGIN:VCARD\n
-VERSION:3.0\n
-N:${await sayoz.getName(i + '@s.whatsapp.net')}\n
-FN:${await sayoz.getName(i + '@s.whatsapp.net')}\n
-item1.TEL;waid=${i}:${i}\n
-item1.X-ABLabel:Ponsel\n
-item2.EMAIL;type=INTERNET:salmanajja13@gmail.com\n
-item2.X-ABLabel:Email\n
-item3.URL:https://github.com/MannOffc\n
-item3.X-ABLabel:GitHub\n
-item4.ADR:;;Indonesia;;;;\n
-item4.X-ABLabel:Region\n
-END:VCARD`
-})
-}
-sayoz.sendMessage(jid, { contacts: { displayName: `${list.length} Contact`, contacts: list }, ...opts }, { quoted })
-}
+XeonBotInc.sendContact = async (jid, kon, quoted = '', opts = {}) => {
+	let list = []
+	for (let i of kon) {
+	    list.push({
+	    	displayName: await XeonBotInc.getName(i),
+	    	vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await XeonBotInc.getName(i)}\nFN:${await XeonBotInc.getName(i)}\nitem1.TEL;waid=${i}:${i}\nitem1.X-ABLabel:Click here to chat\nitem2.EMAIL;type=INTERNET:${ytname}\nitem2.X-ABLabel:YouTube\nitem3.URL:${socialm}\nitem3.X-ABLabel:GitHub\nitem4.ADR:;;${location};;;;\nitem4.X-ABLabel:Region\nEND:VCARD`
+	    })
+	}
+	XeonBotInc.sendMessage(jid, { contacts: { displayName: `${list.length} Contact`, contacts: list }, ...opts }, { quoted })
+    }
 
-sayoz.setStatus = (status) => {
-sayoz.query({
+XeonBotInc.setStatus = (status) => {
+XeonBotInc.query({
 tag: 'iq',
 attrs: {
 to: '@s.whatsapp.net',
@@ -258,14 +425,14 @@ content: Buffer.from(status, 'utf-8')
 return status
 }
 
-sayoz.public = true
+XeonBotInc.public = true
 
-sayoz.sendImage = async (jid, path, caption = '', quoted = '', options) => {
+XeonBotInc.sendImage = async (jid, path, caption = '', quoted = '', options) => {
 let buffer = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
-return await sayoz.sendMessage(jid, { image: buffer, caption: caption, ...options }, { quoted })
+return await XeonBotInc.sendMessage(jid, { image: buffer, caption: caption, ...options }, { quoted })
 }
 
-sayoz.sendImageAsSticker = async (jid, path, quoted, options = {}) => {
+XeonBotInc.sendImageAsSticker = async (jid, path, quoted, options = {}) => {
 let buff = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
 let buffer
 if (options && (options.packname || options.author)) {
@@ -273,14 +440,14 @@ buffer = await writeExifImg(buff, options)
 } else {
 buffer = await imageToWebp(buff)
 }
-await sayoz.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
+await XeonBotInc.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
 .then( response => {
 fs.unlinkSync(buffer)
 return response
 })
 }
 
-sayoz.sendVideoAsSticker = async (jid, path, quoted, options = {}) => {
+XeonBotInc.sendVideoAsSticker = async (jid, path, quoted, options = {}) => {
 let buff = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
 let buffer
 if (options && (options.packname || options.author)) {
@@ -288,11 +455,11 @@ buffer = await writeExifVid(buff, options)
 } else {
 buffer = await videoToWebp(buff)
 }
-await sayoz.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
+await XeonBotInc.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
 return buffer
 }
 
-sayoz.copyNForward = async (jid, message, forceForward = false, options = {}) => {
+XeonBotInc.copyNForward = async (jid, message, forceForward = false, options = {}) => {
 let vtype
 if (options.readViewOnce) {
 message.message = message.message && message.message.ephemeralMessage && message.message.ephemeralMessage.message ? message.message.ephemeralMessage.message : (message.message || undefined)
@@ -322,11 +489,11 @@ contextInfo: {
 }
 } : {})
 } : {})
-await sayoz.relayMessage(jid, waMessage.message, { messageId:  waMessage.key.id })
+await XeonBotInc.relayMessage(jid, waMessage.message, { messageId:  waMessage.key.id })
 return waMessage
 }
 
-sayoz.downloadAndSaveMediaMessage = async (message, filename, attachExtension = true) => {
+XeonBotInc.downloadAndSaveMediaMessage = async (message, filename, attachExtension = true) => {
 let quoted = message.msg ? message.msg : message
 let mime = (message.msg || message).mimetype || ''
 let messageType = message.mtype ? message.mtype.replace(/Message/gi, '') : mime.split('/')[0]
@@ -341,7 +508,7 @@ await fs.writeFileSync(trueFileName, buffer)
 return trueFileName
 }
 
-sayoz.downloadMediaMessage = async (message) => {
+XeonBotInc.downloadMediaMessage = async (message) => {
 let mime = (message.msg || message).mimetype || ''
 let messageType = message.mtype ? message.mtype.replace(/Message/gi, '') : mime.split('/')[0]
 const stream = await downloadContentFromMessage(message, messageType)
@@ -352,7 +519,7 @@ buffer = Buffer.concat([buffer, chunk])
 return buffer
 }
 
-sayoz.getFile = async (PATH, save) => {
+XeonBotInc.getFile = async (PATH, save) => {
 let res
 let data = Buffer.isBuffer(PATH) ? PATH : /^data:.*?\/.*?;base64,/i.test(PATH) ? Buffer.from(PATH.split`,`[1], 'base64') : /^https?:\/\//.test(PATH) ? await (res = await getBuffer(PATH)) : fs.existsSync(PATH) ? (filename = PATH, fs.readFileSync(PATH)) : typeof PATH === 'string' ? PATH : Buffer.alloc(0)
 let type = await FileType.fromBuffer(data) || {
@@ -367,8 +534,8 @@ size: await getSizeMedia(data),
 ...type,
 data}}
 
-sayoz.sendMedia = async (jid, path, fileName = '', caption = '', quoted = '', options = {}) => {
-let types = await sayoz.getFile(path, true)
+XeonBotInc.sendMedia = async (jid, path, fileName = '', caption = '', quoted = '', options = {}) => {
+let types = await XeonBotInc.getFile(path, true)
 let { mime, ext, res, data, filename } = types
 if (res && res.status !== 200 || file.length <= 65536) {
 try { throw { json: JSON.parse(file.toString()) } }
@@ -386,34 +553,14 @@ else if (/image/.test(mime)) type = 'image'
 else if (/video/.test(mime)) type = 'video'
 else if (/audio/.test(mime)) type = 'audio'
 else type = 'document'
-await sayoz.sendMessage(jid, { [type]: { url: pathFile }, caption, mimetype, fileName, ...options }, { quoted, ...options })
+await XeonBotInc.sendMessage(jid, { [type]: { url: pathFile }, caption, mimetype, fileName, ...options }, { quoted, ...options })
 return fs.promises.unlink(pathFile)}
 
-sayoz.sendText = (jid, text, quoted = '', options) => sayoz.sendMessage(jid, { text: text, ...options }, { quoted })
+XeonBotInc.sendText = (jid, text, quoted = '', options) => XeonBotInc.sendMessage(jid, { text: text, ...options }, { quoted })
 
-sayoz.serializeM = (m) => smsg(sayoz, m, store)
+XeonBotInc.serializeM = (m) => smsg(XeonBotInc, m, store)
 
-sayoz.ev.on('connection.update', async (update) => {
-const { connection, lastDisconnect } = update	
-if (connection === 'close') {
-let reason = new Boom(lastDisconnect?.error)?.output.statusCode
-if (reason === DisconnectReason.badSession) { console.log(`Bad Session File, Please Delete Session and Scan Again`); sayoz.logout(); }
-else if (reason === DisconnectReason.connectionClosed) { console.log("Connection closed, reconnecting...."); sayozBot(); }
-else if (reason === DisconnectReason.connectionLost) { console.log("Connection Lost from Server, reconnecting..."); sayozBot(); }
-else if (reason === DisconnectReason.connectionReplaced) { console.log("Connection Replaced, Another New Session Opened, Please Close Current Session First"); sayoz.logout(); }
-else if (reason === DisconnectReason.loggedOut) { console.log(`Device Logged Out, Please Scan Again And Run.`); sayoz.logout(); }
-else if (reason === DisconnectReason.restartRequired) { console.log("Restart Required, Restarting..."); sayozBot(); }
-else if (reason === DisconnectReason.timedOut) { console.log("Connection TimedOut, Reconnecting..."); sayozBot(); }
-else sayoz.end(`Unknown DisconnectReason: ${reason}|${connection}`)
-} else if (connection === "open") { sayoz.sendMessage(owner + "@s.whatsapp.net", { text: `sayoz on` }); }
-console.log('Connected...', update)
-})
-
-sayoz.ev.on('creds.update', await saveCreds)
-
-start('2',colors.bold.white('\nAguardando nova mensagem..'))
-
-sayoz.sendButtonText = (jid, buttons = [], text, footer, quoted = '', options = {}) => {
+XeonBotInc.sendButtonText = (jid, buttons = [], text, footer, quoted = '', options = {}) => {
 let buttonMessage = {
 text,
 footer,
@@ -421,11 +568,11 @@ buttons,
 headerType: 2,
 ...options
 }
-sayoz.sendMessage(jid, buttonMessage, { quoted, ...options })
+XeonBotInc.sendMessage(jid, buttonMessage, { quoted, ...options })
 }
 
-sayoz.sendKatalog = async (jid , title = '' , desc = '', gam , options = {}) =>{
-let message = await prepareWAMessageMedia({ image: gam }, { upload: sayoz.waUploadToServer })
+XeonBotInc.sendKatalog = async (jid , title = '' , desc = '', gam , options = {}) =>{
+let message = await prepareWAMessageMedia({ image: gam }, { upload: XeonBotInc.waUploadToServer })
 const tod = generateWAMessageFromContent(jid,
 {"productMessage": {
 "product": {
@@ -435,17 +582,17 @@ const tod = generateWAMessageFromContent(jid,
 "description": desc,
 "currencyCode": "INR",
 "priceAmount1000": "100000",
-"url": `https://youtube.com/@hyugimura}`,
+"url": `${websitex}`,
 "productImageCount": 1,
 "salePriceAmount1000": "0"
 },
-"businessOwnerJid": `5562936180708@s.whatsapp.net`
+"businessOwnerJid": `${ownernumber}@s.whatsapp.net`
 }
 }, options)
-return sayoz.relayMessage(jid, tod.message, {messageId: tod.key.id})
+return XeonBotInc.relayMessage(jid, tod.message, {messageId: tod.key.id})
 } 
 
-sayoz.send5ButLoc = async (jid , text = '' , footer = '', img, but = [], options = {}) =>{
+XeonBotInc.send5ButLoc = async (jid , text = '' , footer = '', img, but = [], options = {}) =>{
 var template = generateWAMessageFromContent(jid, proto.Message.fromObject({
 templateMessage: {
 hydratedTemplate: {
@@ -457,10 +604,10 @@ hydratedTemplate: {
 }
 }
 }), options)
-sayoz.relayMessage(jid, template.message, { messageId: template.key.id })
+XeonBotInc.relayMessage(jid, template.message, { messageId: template.key.id })
 }
 
-sayoz.sendButImg = async (jid, path, teks, fke, but) => {
+XeonBotInc.sendButImg = async (jid, path, teks, fke, but) => {
 let img = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
 let fjejfjjjer = {
 image: img, 
@@ -471,20 +618,127 @@ footer: fke,
 buttons: but,
 headerType: 4,
 }
-sayoz.sendMessage(jid, fjejfjjjer, { quoted: m })
+XeonBotInc.sendMessage(jid, fjejfjjjer, { quoted: m })
 }
 
-return sayoz
+            /**
+             * Send Media/File with Automatic Type Specifier
+             * @param {String} jid
+             * @param {String|Buffer} path
+             * @param {String} filename
+             * @param {String} caption
+             * @param {import('@adiwajshing/baileys').proto.WebMessageInfo} quoted
+             * @param {Boolean} ptt
+             * @param {Object} options
+             */
+XeonBotInc.sendFile = async (jid, path, filename = '', caption = '', quoted, ptt = false, options = {}) => {
+                let type = await XeonBotInc.getFile(path, true)
+                let { res, data: file, filename: pathFile } = type
+                if (res && res.status !== 200 || file.length <= 65536) {
+                    try { throw { json: JSON.parse(file.toString()) } }
+                    catch (e) { if (e.json) throw e.json }
+                }
+                const fileSize = fs.statSync(pathFile).size / 1024 / 1024
+                if (fileSize >= 1800) throw new Error(' The file size is too large\n\n')
+                let opt = {}
+                if (quoted) opt.quoted = quoted
+                if (!type) options.asDocument = true
+                let mtype = '', mimetype = options.mimetype || type.mime, convert
+                if (/webp/.test(type.mime) || (/image/.test(type.mime) && options.asSticker)) mtype = 'sticker'
+                else if (/image/.test(type.mime) || (/webp/.test(type.mime) && options.asImage)) mtype = 'image'
+                else if (/video/.test(type.mime)) mtype = 'video'
+                else if (/audio/.test(type.mime)) (
+                    convert = await toAudio(file, type.ext),
+                    file = convert.data,
+                    pathFile = convert.filename,
+                    mtype = 'audio',
+                    mimetype = options.mimetype || 'audio/ogg; codecs=opus'
+                )
+                else mtype = 'document'
+                if (options.asDocument) mtype = 'document'
+
+                delete options.asSticker
+                delete options.asLocation
+                delete options.asVideo
+                delete options.asDocument
+                delete options.asImage
+
+                let message = {
+                    ...options,
+                    caption,
+                    ptt,
+                    [mtype]: { url: pathFile },
+                    mimetype,
+                    fileName: filename || pathFile.split('/').pop()
+                }
+                /**
+                 * @type {import('@adiwajshing/baileys').proto.WebMessageInfo}
+                 */
+                let m
+                try {
+                    m = await XeonBotInc.sendMessage(jid, message, { ...opt, ...options })
+                } catch (e) {
+                    console.error(e)
+                    m = null
+                } finally {
+                    if (!m) m = await XeonBotInc.sendMessage(jid, { ...message, [mtype]: file }, { ...opt, ...options })
+                    file = null // releasing the memory
+                    return m
+                }
+            }
+
+//XeonBotInc.sendFile = async (jid, media, options = {}) => {
+        //let file = await XeonBotInc.getFile(media)
+        //let mime = file.ext, type
+        //if (mime == "mp3") {
+          //type = "audio"
+          //options.mimetype = "audio/mpeg"
+          //options.ptt = options.ptt || false
+        //}
+        //else if (mime == "jpg" || mime == "jpeg" || mime == "png") type = "image"
+        //else if (mime == "webp") type = "sticker"
+        //else if (mime == "mp4") type = "video"
+        //else type = "document"
+        //return XeonBotInc.sendMessage(jid, { [type]: file.data, ...options }, { ...options })
+      //}
+
+XeonBotInc.sendFileUrl = async (jid, url, caption, quoted, options = {}) => {
+      let mime = '';
+      let res = await axios.head(url)
+      mime = res.headers['content-type']
+      if (mime.split("/")[1] === "gif") {
+     return XeonBotInc.sendMessage(jid, { video: await getBuffer(url), caption: caption, gifPlayback: true, ...options}, { quoted: quoted, ...options})
+      }
+      let type = mime.split("/")[0]+"Message"
+      if(mime === "application/pdf"){
+     return XeonBotInc.sendMessage(jid, { document: await getBuffer(url), mimetype: 'application/pdf', caption: caption, ...options}, { quoted: quoted, ...options })
+      }
+      if(mime.split("/")[0] === "image"){
+     return XeonBotInc.sendMessage(jid, { image: await getBuffer(url), caption: caption, ...options}, { quoted: quoted, ...options})
+      }
+      if(mime.split("/")[0] === "video"){
+     return XeonBotInc.sendMessage(jid, { video: await getBuffer(url), caption: caption, mimetype: 'video/mp4', ...options}, { quoted: quoted, ...options })
+      }
+      if(mime.split("/")[0] === "audio"){
+     return XeonBotInc.sendMessage(jid, { audio: await getBuffer(url), caption: caption, mimetype: 'audio/mpeg', ...options}, { quoted: quoted, ...options })
+      }
+      }
+      
+      /**
+     * 
+     * @param {*} jid 
+     * @param {*} name 
+     * @param [*] values 
+     * @returns 
+     */
+    XeonBotInc.sendPoll = (jid, name = '', values = [], selectableCount = 1) => { return XeonBotInc.sendMessage(jid, { poll: { name, values, selectableCount }}) }
+
+return XeonBotInc
 
 }
 
-sayozBot()
+XeonBotIncBot()
 
 process.on('uncaughtException', function (err) {
 console.log('Caught exception: ', err)
-}) 
-
-const porta = process.env.PORT || 5000;
-//iniciando...
-app.listen(porta, () => console.log("site Online na porta:", porta));
-
+})

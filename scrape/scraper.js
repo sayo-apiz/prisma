@@ -34,7 +34,7 @@ exports.rexdl = async (query) => {
 				})
 				for (let i = 0; i < judul.length; i++) {
 					result.push({
-						creator: 'Kayla Bot',
+						creator: 'DGXeon',
 						judul: judul[i],
 						kategori: jenis[i],
 						upload_date: date[i],
@@ -78,7 +78,7 @@ exports.rexdldown = async (link) => {
 							})
 						}
 						resolve({
-							creator: 'Kayla Bot',
+							creator: 'DGXeon',
 							judul: judul,
 							update_date: $$('#dlbox > ul.dl-list > li.dl-update > span:nth-child(2)').text(),
 							version: $$('#dlbox > ul.dl-list > li.dl-version > span:nth-child(2)').text(),
@@ -244,7 +244,7 @@ exports.stickersearch = async (query) => {
 							url.push($$(b).attr('src').split('&d=')[0])
 						})
 						resolve({
-							creator: 'Kayla Bot',
+							creator: 'DGXeon',
 							title: $$('#intro > div > div > h1').text(),
 							author: $$('#intro > div > div > h5 > a').text(),
 							author_link: $$('#intro > div > div > h5 > a').attr('href'),
@@ -373,7 +373,7 @@ exports.zerochan = async (query) => {
 					result.push('https://s1.zerochan.net/' + judul[i].replace(/\ /g, '.') + '.600.' + id[i].split('/')[1] + '.jpg')
 				}
 				resolve({
-					creator: 'Kayla Bot',
+					creator: 'DGXeon',
 					result: result
 				})
 			})
@@ -409,7 +409,7 @@ exports.happymoddl = async (link) => {
 				}
 				console.log(link)
 				resolve({
-					creator: 'Kayla Bot',
+					creator: 'DGXeon',
 					title: title,
 					info: info.replace(/\t|- /g, ''),
 					download: link
@@ -432,7 +432,7 @@ exports.goredl = async (link) => {
 					link: $$('video > source').attr('src')
 				}
 				const result = {
-					creator: 'Kayla Bot',
+					creator: 'DGXeon',
 					data: format
 				}
 				resolve(result)
@@ -606,7 +606,7 @@ exports.anoboys = async (query) => {
 				}
 				const result = {
 					status: data.status,
-					creator: 'Kayla Bot',
+					creator: 'DGXeon',
 					data: format
 				}
 				resolve(result)
@@ -948,7 +948,7 @@ exports.gempa = async () => {
 					dirasakan: rasa
 				}
 				const result = {
-					creator: 'Kayla Bot',
+					creator: 'DGXeon',
 					data: format
 				}
 				resolve(result)
@@ -982,7 +982,7 @@ exports.cariresep = async (query) => {
 					})
 				}
 				const result = {
-					creator: 'Kayla Bot',
+					creator: 'DGXeon',
 					data: format
 				}
 				resolve(result)
@@ -1028,7 +1028,7 @@ exports.bacaresep = async (query) => {
 				const tahap = ttahap
 				const bahan = tbahan
 				const result = {
-					creator: 'Kayla Bot',
+					creator: 'DGXeon',
 					    judul_nya: judul,
 						waktu_nya: waktu,
 						hasil_nya: hasil,
@@ -1086,7 +1086,7 @@ exports.searchgore = async (query) => {
 						})
 					}
 					const result = {
-						creator: 'Kayla Bot',
+						creator: 'DGXeon',
 						data: format
 					}
 					resolve(result)
@@ -1127,7 +1127,7 @@ exports.randomgore = async () => {
 							link: $$('video > source').attr('src')
 						}
 						const result = {
-							creator: 'Kayla Bot',
+							creator: 'DGXeon',
 							data: format
 						}
 						resolve(result)
@@ -1443,14 +1443,14 @@ exports.happymod = (query) => {
 				})
 				for (let i = 0; i < link.length; i++) {
 					format.push({
-						judul: nama[i],
+						title: nama[i],
 						thumb: thumb[i],
 						rating: rating[i],
 						link: link[i]
 					})
 				}
 				const result = {
-					creator: 'Hanya Orang Biasa',
+					creator: 'DGXeon',
 					data: format
 				}
 				resolve(result)
@@ -1574,7 +1574,7 @@ exports.mangatoon = async (search) => {
 			let comic_thumb = $(b).find('img').attr('src');
 			const result = {
 				status: res.status,
-				creator: "Kayla Bot",
+				creator: "DGXeon",
 				comic_name,
 				comic_type,
 				comic_url: 'https://mangatoon.mobi' + comic_url,
@@ -1604,7 +1604,7 @@ exports.palingmurah = async (produk) => {
 			let price = $(b).find('div.flex-master.card-job-price.text-right.text-vertical-center').text().trim()
 			const result = {
 				status: res.status,
-				creator: "Kayla Bot",
+				creator: "DGXeon",
 				product: title,
 				product_desc: product_desc,
 				product_image: img,
