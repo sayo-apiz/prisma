@@ -7,7 +7,7 @@
         pkgs.git
         pkgs.ffmpeg
         pkgs.neofetch
-        #pkgs.libwebp
+        pkgs.libwebp
         pkgs.speedtest-cli
         pkgs.wget
         pkgs.libuuid
